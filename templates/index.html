@@ -9,7 +9,8 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
+    <!--fonstawesome CSS-->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -19,12 +20,22 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
+    <!-- 달력관련 -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css" />
+    <!-- awesome font-->
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.css" />
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
-    <script src="../static/js/myjs.js"></script>
-
+    <!-- 구글폰트 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR&display=swap" rel="stylesheet">
     <style>
+        * {
+            font-family: 'Jua', sans-serif;
+        }
         .wrap {
             width: 900px;
             margin: auto;
@@ -36,272 +47,261 @@
         }
         .top {
             height: 200px;
-            background-color: beige;
+            background-color: cornflowerblue;
         }
-        .top_username {
-            width: 400px;
-            height: 60px;
-            margin-left: 100px;
+        .top_left {
+            width: 40%;
+            height:100%;
+            float:left;
+            margin-left:10%;
+        }
+        .top_right {
+            width:40%;
+            height: 100%;
+            float:right;
+            margin-right:10%;
         }
         .btn_logout {
             display: block;
-            margin: auto 50px auto auto;
             width: 100px;
+            margin: 50px 0px 0px auto;
         }
         .btn_post {
             display: block;
-            margin: 30px 50px auto auto;
             width: 100px;
+            margin: 10px 0px 0px auto;
         }
-        .yellow {
-            color: darkorange;
+        .red {
+            color: red;
         }
+        .bottom {
+            height: 100px;
+        }
+        .card_dday {
+            font-size:17pt;
+        }
+        .card_btn {
+            display:block;
+            width:40px;
+            margin: 0px 0px 0px auto;
+        }
+        .top_username {
+            display:inline-block;
+            margin-top: 60px;
+            color: white;
+        }
+        .cursor {
+            cursor:pointer;
+        }
+        .btn_modal_post{
+            display:block;
+            margin: auto;
+        }
+        .linebyline{
+            padding-bottom: 20px
+        }
+
+        .modal-content {
+            height: auto;
+            min-height: 80%;
+            border-radius: 20px;
+        }
+
+        .modal-dialog{
+            width: 70%;
+            height: auto;
+            min-height:80%
+        }
+
+        .modal_body_content{
+            padding-bottom: 40px;
+        }
+
+        .back {
+            background-image: url("../static/image/feather-3010848.jpg");
+            background-position: center;
+            background-size: cover;
+        }
+
+
+
     </style>
     <script>
+        function postArticle() {
+                let name = $('#name').val()
+                let count = $('#count').val()
+                let msrmt = $('#msrmt').val()
+                let date = $('#date').val()
+                let memo = $('#memo').val()
 
-        $(document).ready(function () {
-                showpost();
-            });
+                $.ajax({
+                    type: "POST",
+                    url: "/board",
+                    data: {name_give: name, count_give: count, msrmt_give: msrmt, date_give:date, memo_give:memo},
+                    success: function (response) { // 성공하면
+                        alert(response["msg"]);
+                        window.location.reload();
+                    }
+                })
+            }
 
-        function move_login() {
-            $.removeCookie('mytoken', {path: '/'});
-            alert('로그아웃!')
-            window.location.href = "/login"
-        }
-
-        function move_post() {
-            alert('등록페이지 띄우기')
-        }
-
-        function delete_post(user_id,name,date) {
+        function delete_post(name,date,msrmt) {
             $.ajax({
-                type: "POST",
-                url: "/delete",
-                data: {user_id_give: user_id,name_give:name,date_give:date},
+                type: "DELETE",
+                url: "/board",
+                data: {name_give:name,date_give:date,msrmt_give:msrmt},
                 success: function (response) {
                     alert(response['msg'])
                     window.location.reload()
                 }
             })
-
         }
 
-        function showpost() {
-            $.ajax({
-                type: "GET",
-                url: "/main?user_id_give=12345",
-                data: {},
-                success: function (response) {
-                    let foods = response["all_food"]
-                    for (let i = 0; i < foods.length; i++) {
-                        let user_id = foods[i]['user_id']
-                        let name = foods[i]['name']
-                        let img = foods[i]['img']
-                        let count = foods[i]['count']
-
-                        let date = foods[i]['date']
-                        let t = date.split('/')
-                        let now_date = new Date();
-                        let end_date = new Date(t[2],t[0]-1,t[1]);
-                        let timediff = end_date.getTime()-now_date.getTime()
-                        let dday = Math.ceil( timediff /(1000*60*60*24))
-                        let plus_dday = 0
-                        if (dday<0) {
-                            plus_dday = Math.abs(dday)
-                        } else {
-                            plus_dday = dday
-                        }
-                        let temp_html = ``
-                        if (dday<0) {
-                            temp_html = `<div class="card text-white bg-secondary mb-3">
-                                            <img class="card-img-top"
-                                                src="${img}"
-                                                alt="Card image cap" height="200px" onclick="show_detail()">
-                                            <div class="card-body">
-                                                <h5 class="card-title">${name}(${count}개)</h5>
-                                                <p class="card-text">D+${plus_dday}</p>
-                                                <button onclick="delete_post('${user_id}','${name}','${date}')" type="button" class="btn btn-danger">삭제하기</button>
-                                            </div>
-                                        </div>`
-                        } else if (dday<4) {
-                            temp_html = `<div class="card yellow">
-                                            <img class="card-img-top"
-                                                src="${img}"
-                                                alt="Card image cap" height="200px" onclick="show_detail()">
-                                            <div class="card-body">
-                                                <h5 class="card-title">${name}(${count}개)</h5>
-                                                <p class="card-text">D-${plus_dday}</p>
-                                                <button onclick="delete_post('${user_id}','${name}','${date}')" type="button" class="btn btn-outline-danger">삭제하기</button>
-                                            </div>
-                                        </div>`
-                        } else {
-                            temp_html = `<div class="card">
-                                            <img class="card-img-top"
-                                                 src="${img}"
-                                                 alt="Card image cap" height="200px" onclick="show_detail()">
-                                            <div class="card-body">
-                                                <h5 class="card-title">${name}(${count}개)</h5>
-                                                <p class="card-text">D-${plus_dday}</p>
-                                                <button onclick="delete_post('${user_id}','${name}','${date}')" type="button" class="btn btn-outline-danger">삭제하기</button>
-                                            </div>
-                                        </div>`
-                        }
-                        $('#cards_box').append(temp_html)
-                    }
-                }
-            })
-        }
 
         function show_detail() {
             alert('상세페이지 띄우기')
         }
 
-        // function postArticle() {
-        //         {#let user_id = 작성자 아이디#}
-        //         {#let img = $('#img').val()#}
-        //         let name = $('#name').val()
-        //         let count = $('#count').val()
-        //         let msrmt = $('#msrmt').val()
-        //         let date = $('#date').val()
-        //         let memo = $('#memo').val()
-        //
-        //         $.ajax({
-        //             type: "POST",
-        //             url: "/board",
-        //             data: {name_give: name, count_give: count, msrmt_give: msrmt, date_give:date, memo_give:memo},
-        //             success: function (response) { // 성공하면
-        //                 alert(response["msg"]);
-        //                 window.location.reload();
-        //             }
-        //         })
-        //     }
-        //
-        //     {#function deleteArticle(title) {#}
-        //     {#    $.ajax({#}
-        //     {#        type: 'POST',#}
-        //     {#        url: '/memo/delete',#}
-        //     {#        data: {title_give: title},#}
-        //     {#        success: function (response) {#}
-        //     {#            alert(response['msg']);#}
-        //     {#            window.location.reload()#}
-        //     {#        }#}
-        //     {#    });#}
-        //     {#}#}
-        //     {##}
-        //     {#function showArticles() {#}
-        //     {#    }#}
 
     </script>
 
     <title>냉장고dday - 메인페이지</title>
 </head>
 
-<body>
+<body class="back">
     <div class="top">
-        <div class="top_username">
-            <h1>000의 냉장고</h1>
+        <div class="top_left">
+            <div class="top_username">
+                <h1>{{ user_info['user_id'] }}의 냉장고</h1>
+            </div>
         </div>
-        <div class="btn_logout">
-            <button onclick="move_login()" type="button" class="btn btn-outline-dark">로그아웃</button>
+        <div class="top_right">
+            <div class="btn_logout">
+                <button type="button" class="btn btn-light">로그아웃</button>
+            </div>
+            <div class="btn_post">
+                <button type="button" class="btn btn-light" data-toggle="modal" data-target="#exampleModal">재료 추가하기</button>
+                {#        등록하기 모달시트 : 빈 칸 있으면 채워달라고 하는 얼럿 필요#}
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">재료를 추가하세요</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                      <div class="modal_body_content">
+{#                          재료/음식 #}
+                          <div class="input-group input-group-name linebyline">
+                              <div class="input-group-prepend">
+                                  <span class="input-group-text" id="inputGroup-sizing-name">재료</span>
+                              </div>
+                              <input type="text" id="name" class="form-control" aria-label="Large"
+                                     aria-describedby="inputGroup-sizing-sm" placeholder="ex. 계란">
+                          </div>
+{#                          수량 - 수정 필요#}
+                          <form class="form-inline">
+{#                              <label class="sr-only" for="inlineFormInputGroupUsername2">Username</label>#}
+                              <div class="input-group mb-2 mr-sm-2">
+                                  <div class="input-group-prepend">
+                                      <div class="input-group-text">개수</div>
+                                  </div>
+                                  <input type="text" class="form-control" id="count"
+                                         placeholder="수량 (ex.1)">
+                              </div>
+{#                              <label class="sr-only" for="inlineFormInputName2">Name</label>#}
+                              <input type="text" class="form-control mb-2 mr-sm-2" id="msrmt"
+                                     placeholder="단위 (ex.판)">
+                          </form>
+{#                           유통기한 달력#}
+                          <div class="container">
+                              <div class="row">
+                                  <div class="col-sm-6">
+                                      <div class="form-group">
+                                          <div class="input-group date" id="datetimepicker4" data-target-input="nearest">
+                                              <div class="input-group-prepend">
+                                                  <span class="input-group-text" id="inputGroup-sizing-add">유통기한</span>
+                                              </div>
+                                              <input type="text" class="form-control datetimepicker-input"
+                                                     data-target="#datetimepicker4" id="date">
+                                              <div class="input-group-append" data-target="#datetimepicker4"
+                                                   data-toggle="datetimepicker">
+                                                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+                                  <script type="text/javascript">
+                                      $(function () {
+                                          $('#datetimepicker4').datetimepicker({
+                                              format: 'L'
+                                          });
+                                      });
+                                  </script>
+                              </div>
+                          </div>
+{#                          메모#}
+                          <div class="input-group input-group-phone">
+                              <div class="input-group-prepend">
+                                  <span class="input-group-text" id="inputGroup-sizing-phone">메모</span>
+                              </div>
+                              <input type="text" id="memo" class="form-control" aria-label="Large"
+                                     aria-describedby="inputGroup-sizing-sm">
+                          </div>
+                      </div>
+                      <button onclick="postArticle()" type="button" class="btn btn-primary btn_modal_post">냉장고에 추가하기</button>
+                  </div>
+            </div>
+          </div>
         </div>
-        <div class="btn_post">
-            <button onclick="move_post()" type="button" class="btn btn-outline-dark">등록하기</button>
+            </div>
         </div>
     </div>
-
-<!--    <div class="top">-->
-<!--        <div class="top_username">-->
-<!--            <h1>000의 냉장고</h1>-->
-<!--        </div>-->
-<!--        <div class="btn_logout">-->
-<!--            <button onclick="move_login()" type="button" class="btn btn-outline-dark">로그아웃</button>-->
-<!--        </div>-->
-<!--        {#        등록버튼 & 모달 시트#}-->
-<!--        <div class="btn_post">-->
-<!--            {#        등록버튼#}-->
-<!--            <button type="button" class="btn btn-outline-dark" data-toggle="modal" data-target="#exampleModal">재료 추가하기</button>-->
-<!--            {#        등록하기 모달시트 : 빈 칸 있으면 채워달라고 하는 얼럿 필요#}-->
-<!--            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">-->
-<!--              <div class="modal-dialog" role="document">-->
-<!--                <div class="modal-content">-->
-<!--                  <div class="modal-header">-->
-<!--                    <h5 class="modal-title" id="exampleModalLabel">재료를 추가하세요</h5>-->
-<!--                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">-->
-<!--                      <span aria-hidden="true">&times;</span>-->
-<!--                    </button>-->
-<!--                  </div>-->
-<!--                  <div class="modal-body">-->
-<!--                      <div class="modal_body_content">-->
-<!--{#                          재료/음식 #}-->
-<!--                          <div class="input-group input-group-name linebyline">-->
-<!--                              <div class="input-group-prepend">-->
-<!--                                  <span class="input-group-text" id="inputGroup-sizing-name">재료</span>-->
-<!--                              </div>-->
-<!--                              <input type="text" id="name" class="form-control" aria-label="Large"-->
-<!--                                     aria-describedby="inputGroup-sizing-sm" placeholder="ex. 계란">-->
-<!--                          </div>-->
-<!--{#                          수량 - 수정 필요#}-->
-<!--                          <form class="form-inline">-->
-<!--{#                              <label class="sr-only" for="inlineFormInputGroupUsername2">Username</label>#}-->
-<!--                              <div class="input-group mb-2 mr-sm-2">-->
-<!--                                  <div class="input-group-prepend">-->
-<!--                                      <div class="input-group-text">개수</div>-->
-<!--                                  </div>-->
-<!--                                  <input type="text" class="form-control" id="count"-->
-<!--                                         placeholder="수량 (ex.1)">-->
-<!--                              </div>-->
-<!--{#                              <label class="sr-only" for="inlineFormInputName2">Name</label>#}-->
-<!--                              <input type="text" class="form-control mb-2 mr-sm-2" id="msrmt"-->
-<!--                                     placeholder="단위 (ex.판)">-->
-<!--                          </form>-->
-<!--{#                           유통기한 달력#}-->
-<!--                          <div class="container">-->
-<!--                              <div class="row">-->
-<!--                                  <div class="col-sm-6">-->
-<!--                                      <div class="form-group">-->
-<!--                                          <div class="input-group date" id="datetimepicker4" data-target-input="nearest">-->
-<!--                                              <div class="input-group-prepend">-->
-<!--                                                  <span class="input-group-text" id="inputGroup-sizing-add">유통기한</span>-->
-<!--                                              </div>-->
-<!--                                              <input type="text" class="form-control datetimepicker-input"-->
-<!--                                                     data-target="#datetimepicker4" id="date">-->
-<!--                                              <div class="input-group-append" data-target="#datetimepicker4"-->
-<!--                                                   data-toggle="datetimepicker">-->
-<!--                                                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>-->
-<!--                                              </div>-->
-<!--                                          </div>-->
-<!--                                      </div>-->
-<!--                                  </div>-->
-<!--                                  <script type="text/javascript">-->
-<!--                                      $(function () {-->
-<!--                                          $('#datetimepicker4').datetimepicker({-->
-<!--                                              format: 'L'-->
-<!--                                          });-->
-<!--                                      });-->
-<!--                                  </script>-->
-<!--                              </div>-->
-<!--                          </div>-->
-<!--{#                          메모#}-->
-<!--                          <div class="input-group input-group-phone">-->
-<!--                              <div class="input-group-prepend">-->
-<!--                                  <span class="input-group-text" id="inputGroup-sizing-phone">메모</span>-->
-<!--                              </div>-->
-<!--                              <input type="text" id="memo" class="form-control" aria-label="Large"-->
-<!--                                     aria-describedby="inputGroup-sizing-sm">-->
-<!--                          </div>-->
-<!--                      </div>-->
-<!--                      <button onclick="postArticle()" type="button" class="btn btn-primary btn_modal_post">냉장고에 추가하기</button>-->
-<!--                  </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        </div>-->
-<!--    </div>-->
-
-
     <div class="wrap" id="cards_box">
+        {% for food in foods %}
+            {% set id = food['_id'] %}
+            {% set user_id = food['user_id'] %}
+            {% set name = food['name'] %}
+            {% set count = food['count'] %}
+            {% set date = food['date'] %}
+            {% set dday = food['dday'] %}
+            {% set msrmt = food['msrmt'] %}
+            {% if date<now %}
+                <div class="card text-white bg-secondary mb-3" style="width: 18rem;height: 200px;">
+                    <div class="card-body">
+                        <p class="card_dday"><span onclick="show_detail()" class="cursor">{{name}} ({{count}}{{ msrmt }})</span><br> D+{{dday}}</p>
+                        <div class="card_btn">
+                            <button onclick="delete_post('{{name}}','{{date}}','{{ msrmt }}')" type="button" class="btn btn-light"><i class="fa fa-trash-o" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                </div>
+            {% elif dday<4 %}
+                <div class="card red" style="width: 18rem;height: 200px;">
+                    <div class="card-body">
+                        <p class="card_dday"><span onclick="show_detail()" class="cursor">{{name}} ({{count}}{{ msrmt }})</span><br>D-{{dday}}</p>
+                        <div class="card_btn">
+                            <button onclick="delete_post('{{name}}','{{date}}','{{ msrmt }}')" type="button" class="btn btn-light"><i class="fa fa-trash-o" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card" style="width: 18rem;height: 200px;">
+                    <div class="card-body">
+                        <p class="card_dday"><span onclick="show_detail()" class="cursor">{{ name }} ({{ count }}{{ msrmt }})</span><br>D-{{ dday }}</p>
+                        <div class="card_btn">
+                            <button onclick="delete_post('{{ name }}','{{ date }}','{{ msrmt }}')"
+                                    type="button" class="btn btn-light"><i class="fa fa-trash-o" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+        <div class="bottom">
+        </div>
     </div>
-
+    <div class="bottom">
+    </div>
 </body>
-
-</html>

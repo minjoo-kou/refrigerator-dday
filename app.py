@@ -6,25 +6,41 @@ from flask import Flask, render_template, jsonify, request, redirect, url_for
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 
+from bson import ObjectId
 
 app = Flask(__name__)
 
 SECRET_KEY = 'SPARTA'
 
 client = MongoClient('localhost', 27017)
-db = client.refrigerator
+db = client.dbsparta
+
+
+
 
 @app.route('/')
 def home():
     token_receive = request.cookies.get('mytoken')
+    d_today = datetime.today()
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
         user_info = db.users.find_one({"user_id": payload["id"]})
-        return render_template('index.html', user_info=user_info)
+        foods = list(db.refrigerator.find({'user_id': user_info['user_id']}).sort('date', 1))
+        now = d_today.strftime('%Y%m%d')
+        for i in range(len(foods)):
+            id = str(foods[i]['_id'])
+            foods[i]['_id']=id
+            now_date = datetime.today()
+            date = foods[i]['date']
+            end_date = datetime.strptime(date, "%Y%m%d")
+            dday = end_date - now_date
+            foods[i]['dday'] = abs(dday.days + 1)
+        return render_template('index.html', user_info=user_info, foods=foods, now=now)
     except jwt.ExpiredSignatureError:
         return redirect(url_for("login", msg="로그인 시간이 만료되었습니다."))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="로그인 정보가 존재하지 않습니다."))
+
 
 @app.route('/login')
 def login():
@@ -74,6 +90,53 @@ def check_dup():
     exists = bool(db.users.find_one({"user_id": username_receive}))
     # print(value_receive, type_receive, exists)
     return jsonify({'result': 'success', 'exists': exists})
+
+
+# 재료 등록하기 작업 됨
+@app.route('/board', methods=['POST'])
+def posting():
+    token_receive = request.cookies.get('mytoken')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+        user_info = db.users.find_one({"user_id": payload["id"]})
+        user_id_receive = user_info['user_id']
+        name_receive = request.form['name_give']
+        count_receive = request.form['count_give']
+        msrmt_receive = request.form['msrmt_give']
+        date_receive_temp = request.form['date_give'].split('/')
+        date_receive = date_receive_temp[2] + date_receive_temp[0] + date_receive_temp[1]
+        memo_receive = request.form['memo_give']
+        doc = {
+            'user_id': user_id_receive,
+            'name': name_receive,
+            'count': int(count_receive),
+            'msrmt': msrmt_receive,
+            'date': date_receive,
+            'memo': memo_receive
+        }
+        db.refrigerator.insert_one(doc)
+        return jsonify({'msg': '저장이 완료되었습니다!'})
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for("home"))
+
+
+@app.route('/board', methods=['DELETE'])
+def test_post():
+    token_receive = request.cookies.get('mytoken')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+        user_info = db.users.find_one({"user_id": payload["id"]})
+        user_id_receive = user_info['user_id']
+        name_receive = request.form['name_give']
+        date_receive = request.form['date_give']
+        msrmt_receive = request.form['msrmt_give']
+        db.refrigerator.delete_one(
+            {'user_id': user_id_receive, 'name': name_receive, 'date': date_receive, 'msrmt': msrmt_receive})
+        return jsonify({'msg': '삭제되었습니다!'})
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for("home"))
+
+
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=3000, debug=True)
